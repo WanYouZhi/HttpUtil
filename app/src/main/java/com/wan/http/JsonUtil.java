@@ -23,9 +23,45 @@ public class JsonUtil {
         return $Gson$Types.canonicalize(param.getActualTypeArguments()[0]);
     }
 
-    //list的json转换
-    public static <T> List<T> jsonCovert(String str, Class<T> obj) {
+    private static final Gson gson = new Gson();
+
+    public static <T> T fromGenericJson(String json, Class<T> obj) {
+        try {
+            return (T) gson.fromJson(json, getSubclassGeneric(obj));
+        } catch (JsonSyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * @param subclass 只有子类才能拿到泛型信息，一般使用匿名内部类
+     * @return
+     */
+    public static Type getSubclassGeneric(Class<?> subclass) {
+        Type superclass = subclass.getGenericSuperclass();
+        if (superclass instanceof Class) {
+            //直接用父类拿到的是Object，这里抛出异常
+            throw new JsonSyntaxException("Missing type parameter.");
+        }
+        ParameterizedType param = (ParameterizedType) superclass;
+        return $Gson$Types.canonicalize(param.getActualTypeArguments()[0]);
+    }
+
+
+    /**
+     * List 的java转换
+     *
+     * @param str
+     * @param obj
+     * @return
+     */
+    public static <T> List<T> listConvert(String str, Class<T> obj) {
         Type type = $Gson$Types.newParameterizedTypeWithOwner(null, List.class, obj);
-        return new Gson().fromJson(str, type);
+        return gson.fromJson(str, type);
+    }
+
+    public static <T> String toJson(T obj) {
+        return gson.toJson(obj);
     }
 }
