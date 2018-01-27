@@ -1,0 +1,30 @@
+
+
+/**
+ * @author wWX531311
+ * @date 2018/1/25
+ * abstract 是因为其子类才能拿到泛型信息,故不允许直接用父类
+ */
+
+public abstract class BaseSharePrefObject<T> {
+    private String name;
+
+    public BaseSharePrefObject(String name) {
+        this.name = name;
+    }
+
+    public T get() {
+        String json = ContextUtils.getAppSharedPreferences().getString(name, null);
+        if (json == null || json.isEmpty()) {
+            return null;
+        }
+        return (T) JsonUtil.fromGenericJson(json, getClass());
+    }
+
+    public void set(T obj) {
+        String json = JsonUtil.toJson(obj);
+        SharedPreferences.Editor editor = ContextUtils.getAppSharedPreferences().edit();
+        editor.putString(name, json);
+        editor.apply();
+    }
+}
